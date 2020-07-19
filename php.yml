@@ -1,35 +1,78 @@
----
 apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    name: php-project
-  name: php-project
+    name: springboot
+  name: spring-controller
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: php-project
+        name: springboot
     spec:
       containers:
-      - image: saikrishna01/php-project:latest
-        name: php-project
+      - image: saikrishna01/php-project
+        name: springboot
         ports:
-        - name: php-project
-          containerPort: 8080  
+        - name: springboot
+          containerPort: 80     
 ---
 # Node Port Service
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    name: php-project
-  name: php-project
+    name: springboot
+  name: springboot
 spec:
   type: NodePort
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: 80
+      targetPort: 80
   selector:
-    name: php-project
+    name: springboot
+---
+# Mongo host path rc
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    name: mongo
+  name: mongo-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: mongo
+    spec:
+      containers:
+      - image: saikrishna01/phpsql 
+        name: mongo
+        ports:
+        - name: mongo
+          containerPort: 3306
+          hostPort: 3306
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage
+        hostPath:
+         path: /tmp/dbbackup
+---
+# Mongo Node Port RC
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: mongo
+  name: mongo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    name: mongo
